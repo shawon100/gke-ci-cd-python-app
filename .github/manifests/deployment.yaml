@@ -16,7 +16,7 @@ spec:
    spec:
      containers:
        - name: python-app-hello-world
-         image: gcr.io/dogwood-method-347907/python-app:$GITHUB_SHA
+         image: gcr.io/dogwood-method-347907/python-app:GITHUB_SHA
          imagePullPolicy: Always
          ports:
            - containerPort: 8080
