@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: python-app
+ labels:
+   app: python-app
+spec:
+ replicas: 1
+ selector:
+   matchLabels:
+     app: python-app
+ template:
+   metadata:
+     labels:
+       app: python-app
+   spec:
+     containers:
+       - name: python-app-hello-world
+         image: gcr.io/dogwood-method-347907/python-app:$GITHUB_SHA
+         imagePullPolicy: Always
+         ports:
+           - containerPort: 8080
+         readinessProbe:
+           httpGet:
+             path: /
+             port: 8080
+           initialDelaySeconds: 5
+           timeoutSeconds: 5
+           periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-app-service
+  labels:
+    app: python-app
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: python-app
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: Deny";
+      more_set_headers "X-Xss-Protection: 1; mode=block";
+      more_set_headers "X-Content-Type-Options: nosniff";
+name: python-ingress
+spec:
+  rules:
+    - host: microservices.cloudageskill.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: python-app-service
+              port: 
+                number: 8080
+          path: /
+          pathType: ImplementationSpecific
